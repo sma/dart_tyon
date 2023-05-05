@@ -287,6 +287,7 @@ void main() {
       ; an example
       name=John
       age=42
+      hobbies=( )
       address=(
         street="Main Street"
         city="New York"
@@ -295,10 +296,12 @@ void main() {
       friends=[
         ( name=Mary age=40 )
         ( name=Bob age=45 )
+        [ ]
       ]''';
     expect(tyonEncode(tyonDecode(tyon)), equals('''
 name = John
 age = 42
+hobbies = ()
 address = (
   street = "Main Street"
   city = "New York"
@@ -313,7 +316,29 @@ friends = [
     name = Bob
     age = 45
   )
+  []
 ]
 '''));
+  });
+
+  group('errors', () {
+    test('unexpected eof', () {
+      expect(() => tyonDecode('a='), throwsA(startsWith('Expected value, got end of file')));
+    });
+    test('missing key', () {
+      expect(() => tyonDecode('[='), throwsA(startsWith('Expected key, got [')));
+    });
+    test('invalid type name', () {
+      expect(() => tyonDecode('/='), throwsA(startsWith('Expected type name, got =')));
+    });
+    test('invalid inline type name', () {
+      expect(() => tyonDecode('a = /='), throwsA(startsWith('Expected type name or inline type, got =')));
+    });
+    test('invalid inline type name', () {
+      expect(() => tyonDecode('a = /_='), throwsA(startsWith('Expected [ or (, got =')));
+    });
+    test('invalid list value', () {
+      expect(() => tyonDecode('a = [/(x)[1]]'), throwsA(startsWith('Expected / or [ or (, got 1')));
+    });
   });
 }
